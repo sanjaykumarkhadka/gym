@@ -1,0 +1,216 @@
+// Gym SaaS Platform - Database Schema
+// https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ============================================
+// ENUMS
+// ============================================
+
+enum Role {
+  SUPER_ADMIN
+  OWNER
+  ASSISTANT
+  MEMBER
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELLED
+  PAST_DUE
+  PENDING
+}
+
+enum BookingStatus {
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+  NO_SHOW
+}
+
+enum PlanInterval {
+  WEEKLY
+  MONTHLY
+  YEARLY
+}
+
+// ============================================
+// CORE MODELS
+// ============================================
+
+model Tenant {
+  id        String   @id @default(uuid())
+  name      String
+  slug      String   @unique
+  settings  Json?    // Logo URL, colors, payment config
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Stripe Connect
+  stripeAccountId     String?
+  stripeAccountStatus String?  // "pending", "active", "restricted"
+
+  // Relations
+  users           User[]
+  classTypes      ClassType[]
+  membershipPlans MembershipPlan[]
+
+  @@index([slug])
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String
+  role      Role     @default(MEMBER)
+  tenantId  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Stripe Customer
+  stripeCustomerId String?
+
+  // Relations
+  tenant        Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  subscriptions Subscription[]
+  bookings      Booking[]
+
+  @@index([tenantId])
+  @@index([email])
+}
+
+model ClassType {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  color       String?  // For calendar display
+  tenantId    String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  tenant    Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  schedules ClassSchedule[]
+
+  @@index([tenantId])
+}
+
+model ClassSchedule {
+  id          String  @id @default(uuid())
+  classTypeId String
+  dayOfWeek   Int     // 0=Sunday, 1=Monday, ..., 6=Saturday
+  startTime   String  // "09:00" (24-hour format)
+  duration    Int     // Minutes
+  capacity    Int
+  instructor  String?
+  isActive    Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  classType ClassType @relation(fields: [classTypeId], references: [id], onDelete: Cascade)
+  bookings  Booking[]
+
+  @@index([classTypeId])
+  @@index([dayOfWeek])
+}
+
+model MembershipPlan {
+  id          String       @id @default(uuid())
+  name        String
+  description String?
+  price       Decimal      @db.Decimal(10, 2)
+  interval    PlanInterval
+  tenantId    String
+  isActive    Boolean      @default(true)
+
+  // Stripe Product/Price IDs
+  stripeProductId String?
+  stripePriceId   String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  tenant        Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  subscriptions Subscription[]
+
+  @@index([tenantId])
+}
+
+model Subscription {
+  id            String             @id @default(uuid())
+  userId        String
+  planId        String
+  status        SubscriptionStatus @default(PENDING)
+  startDate     DateTime
+  endDate       DateTime?
+  cancelledAt   DateTime?
+
+  // Stripe Subscription
+  stripeSubscriptionId String? @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  user User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan MembershipPlan @relation(fields: [planId], references: [id])
+
+  @@index([userId])
+  @@index([planId])
+  @@index([status])
+}
+
+model Booking {
+  id         String        @id @default(uuid())
+  userId     String
+  scheduleId String
+  date       DateTime      @db.Date // The specific date of this booking
+  status     BookingStatus @default(CONFIRMED)
+  checkedIn  Boolean       @default(false)
+  checkedInAt DateTime?
+
+  // For recurring bookings
+  isRecurring     Boolean @default(false)
+  recurringUntil  DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  user     User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  schedule ClassSchedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+
+  // Prevent duplicate bookings for same user, schedule, and date
+  @@unique([userId, scheduleId, date])
+  @@index([userId])
+  @@index([scheduleId])
+  @@index([date])
+  @@index([status])
+}
+
+// ============================================
+// AUDIT / ACTIVITY LOG (Optional)
+// ============================================
+
+model ActivityLog {
+  id        String   @id @default(uuid())
+  tenantId  String
+  userId    String?
+  action    String   // "booking.created", "subscription.cancelled", etc.
+  details   Json?
+  createdAt DateTime @default(now())
+
+  @@index([tenantId])
+  @@index([userId])
+  @@index([createdAt])
+}
