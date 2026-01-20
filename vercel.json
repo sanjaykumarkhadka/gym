@@ -1,6 +1,0 @@
-{
-    "buildCommand": "cd gym-saas && npm install && npm run build",
-    "outputDirectory": "gym-saas/.next",
-    "installCommand": "cd gym-saas && npm install",
-    "framework": "nextjs"
-}
