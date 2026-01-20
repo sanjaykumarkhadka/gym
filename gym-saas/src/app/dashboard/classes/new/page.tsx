@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import {
   Card,
   CardContent,
@@ -35,33 +36,12 @@ export default function NewClassPage() {
     setIsLoading(true);
     setError(null);
 
-    const formData = new FormData(e.currentTarget);
+    // Simulate creating class
+    await new Promise((resolve) => setTimeout(resolve, 500));
 
-    try {
-      const response = await fetch("/api/classes", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: formData.get("name"),
-          description: formData.get("description") || null,
-          color: selectedColor,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        setError(data.error || "Failed to create class");
-        return;
-      }
-
-      router.push("/dashboard/classes");
-      router.refresh();
-    } catch {
-      setError("Something went wrong. Please try again.");
-    } finally {
-      setIsLoading(false);
-    }
+    toast.success("Demo: Class type would be created");
+    router.push("/dashboard/classes");
+    setIsLoading(false);
   }
 
   return (

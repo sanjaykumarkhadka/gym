@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import {
   Card,
   CardContent,
@@ -63,7 +63,6 @@ interface ClassListProps {
 }
 
 export function ClassList({ classTypes, canManage }: ClassListProps) {
-  const router = useRouter();
   const [isAddingSchedule, setIsAddingSchedule] = useState(false);
   const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -73,44 +72,18 @@ export function ClassList({ classTypes, canManage }: ClassListProps) {
     if (!selectedClassId) return;
 
     setIsLoading(true);
-    const formData = new FormData(e.currentTarget);
 
-    try {
-      const response = await fetch(`/api/classes/${selectedClassId}/schedules`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          dayOfWeek: parseInt(formData.get("dayOfWeek") as string),
-          startTime: formData.get("startTime"),
-          duration: parseInt(formData.get("duration") as string),
-          capacity: parseInt(formData.get("capacity") as string),
-          instructor: formData.get("instructor") || null,
-        }),
-      });
+    // Simulate adding schedule
+    await new Promise((resolve) => setTimeout(resolve, 500));
 
-      if (response.ok) {
-        setIsAddingSchedule(false);
-        setSelectedClassId(null);
-        router.refresh();
-      }
-    } catch (error) {
-      console.error("Failed to add schedule:", error);
-    } finally {
-      setIsLoading(false);
-    }
+    toast.success("Demo: Schedule would be added");
+    setIsAddingSchedule(false);
+    setSelectedClassId(null);
+    setIsLoading(false);
   }
 
-  async function handleDeleteSchedule(classId: string, scheduleId: string) {
-    if (!confirm("Are you sure you want to delete this schedule?")) return;
-
-    try {
-      await fetch(`/api/classes/${classId}/schedules/${scheduleId}`, {
-        method: "DELETE",
-      });
-      router.refresh();
-    } catch (error) {
-      console.error("Failed to delete schedule:", error);
-    }
+  function handleDeleteSchedule(classId: string, scheduleId: string) {
+    toast.success("Demo: Schedule would be deleted");
   }
 
   if (classTypes.length === 0) {

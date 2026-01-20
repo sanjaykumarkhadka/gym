@@ -1,5 +1,6 @@
-import { requireOwner } from "@/lib/auth-utils";
-import { getTenantStats } from "@/lib/tenant";
+"use client";
+
+import { demoStats } from "@/lib/mock-data";
 import {
   Card,
   CardContent,
@@ -7,10 +8,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import Link from "next/link";
 
-export default async function AdminDashboardPage() {
-  const user = await requireOwner();
-  const stats = await getTenantStats(user.tenantId);
+export default function AdminDashboardPage() {
+  const stats = demoStats;
 
   return (
     <div className="space-y-6">
@@ -76,7 +77,7 @@ export default async function AdminDashboardPage() {
             <CardDescription>Common tasks for your gym</CardDescription>
           </CardHeader>
           <CardContent className="space-y-2">
-            <a
+            <Link
               href="/dashboard/classes"
               className="block p-3 rounded-lg border hover:bg-gray-50 transition-colors"
             >
@@ -84,8 +85,8 @@ export default async function AdminDashboardPage() {
               <div className="text-sm text-muted-foreground">
                 Create and edit class schedules
               </div>
-            </a>
-            <a
+            </Link>
+            <Link
               href="/dashboard/members"
               className="block p-3 rounded-lg border hover:bg-gray-50 transition-colors"
             >
@@ -93,8 +94,8 @@ export default async function AdminDashboardPage() {
               <div className="text-sm text-muted-foreground">
                 Manage member accounts and subscriptions
               </div>
-            </a>
-            <a
+            </Link>
+            <Link
               href="/dashboard/plans"
               className="block p-3 rounded-lg border hover:bg-gray-50 transition-colors"
             >
@@ -102,7 +103,7 @@ export default async function AdminDashboardPage() {
               <div className="text-sm text-muted-foreground">
                 Configure pricing and plans
               </div>
-            </a>
+            </Link>
           </CardContent>
         </Card>
 
@@ -119,25 +120,25 @@ export default async function AdminDashboardPage() {
               <span className="text-sm">Create your gym account</span>
             </div>
             <div className="flex items-center gap-3">
-              <div className="h-6 w-6 rounded-full bg-gray-100 text-gray-600 flex items-center justify-center text-sm">
+              <div className="h-6 w-6 rounded-full bg-green-100 text-green-600 flex items-center justify-center text-sm">
                 2
               </div>
               <span className="text-sm">Add class types (Yoga, Kickboxing, etc.)</span>
             </div>
             <div className="flex items-center gap-3">
-              <div className="h-6 w-6 rounded-full bg-gray-100 text-gray-600 flex items-center justify-center text-sm">
+              <div className="h-6 w-6 rounded-full bg-green-100 text-green-600 flex items-center justify-center text-sm">
                 3
               </div>
               <span className="text-sm">Set up weekly schedules</span>
             </div>
             <div className="flex items-center gap-3">
-              <div className="h-6 w-6 rounded-full bg-gray-100 text-gray-600 flex items-center justify-center text-sm">
+              <div className="h-6 w-6 rounded-full bg-green-100 text-green-600 flex items-center justify-center text-sm">
                 4
               </div>
               <span className="text-sm">Create membership plans</span>
             </div>
             <div className="flex items-center gap-3">
-              <div className="h-6 w-6 rounded-full bg-gray-100 text-gray-600 flex items-center justify-center text-sm">
+              <div className="h-6 w-6 rounded-full bg-green-100 text-green-600 flex items-center justify-center text-sm">
                 5
               </div>
               <span className="text-sm">Connect Stripe for payments</span>

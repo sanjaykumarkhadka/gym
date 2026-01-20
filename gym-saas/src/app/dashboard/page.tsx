@@ -1,14 +1,27 @@
-import { redirect } from "next/navigation";
-import { auth } from "@/auth";
-import { getDashboardPath } from "@/lib/auth-utils";
+"use client";
 
-export default async function DashboardPage() {
-  const session = await auth();
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useDemoAuth } from "@/lib/demo-auth";
 
-  if (!session?.user) {
-    redirect("/login");
-  }
+export default function DashboardPage() {
+  const router = useRouter();
+  const { user, isAuthenticated } = useDemoAuth();
 
-  const dashboardPath = getDashboardPath(session.user.role);
-  redirect(dashboardPath);
+  useEffect(() => {
+    if (!isAuthenticated) {
+      router.push("/login");
+      return;
+    }
+
+    if (user?.role === "OWNER" || user?.role === "SUPER_ADMIN") {
+      router.push("/dashboard/admin");
+    } else if (user?.role === "ASSISTANT") {
+      router.push("/dashboard/assistant");
+    } else {
+      router.push("/dashboard/member");
+    }
+  }, [isAuthenticated, user, router]);
+
+  return null;
 }

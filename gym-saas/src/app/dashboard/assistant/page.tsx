@@ -1,5 +1,6 @@
-import { requireAssistant } from "@/lib/auth-utils";
-import { prisma } from "@/lib/prisma";
+"use client";
+
+import { demoTodayBookings, demoSchedules } from "@/lib/mock-data";
 import {
   Card,
   CardContent,
@@ -9,46 +10,9 @@ import {
 } from "@/components/ui/card";
 import { CheckInList } from "@/components/dashboard/checkin-list";
 
-export default async function AssistantDashboardPage() {
-  const user = await requireAssistant();
-
-  // Get today's date range
+export default function AssistantDashboardPage() {
   const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const tomorrow = new Date(today);
-  tomorrow.setDate(tomorrow.getDate() + 1);
-
-  // Get today's bookings
-  const todayBookings = await prisma.booking.findMany({
-    where: {
-      schedule: {
-        classType: { tenantId: user.tenantId },
-      },
-      date: {
-        gte: today,
-        lt: tomorrow,
-      },
-      status: { in: ["CONFIRMED", "COMPLETED"] },
-    },
-    include: {
-      user: {
-        select: {
-          id: true,
-          name: true,
-          email: true,
-        },
-      },
-      schedule: {
-        include: {
-          classType: true,
-        },
-      },
-    },
-    orderBy: [
-      { schedule: { startTime: "asc" } },
-      { user: { name: "asc" } },
-    ],
-  });
+  const todayBookings = demoTodayBookings;
 
   // Group bookings by class
   const bookingsByClass = todayBookings.reduce(
@@ -63,10 +27,7 @@ export default async function AssistantDashboardPage() {
       acc[key].bookings.push(booking);
       return acc;
     },
-    {} as Record<
-      string,
-      { schedule: typeof todayBookings[0]["schedule"]; bookings: typeof todayBookings }
-    >
+    {} as Record<string, { schedule: typeof todayBookings[0]["schedule"]; bookings: typeof todayBookings }>
   );
 
   const classGroups = Object.values(bookingsByClass);

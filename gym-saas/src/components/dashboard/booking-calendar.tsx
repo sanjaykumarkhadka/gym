@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { Calendar } from "@/components/ui/calendar";
+import { toast } from "sonner";
 import {
   Card,
   CardContent,
@@ -48,12 +48,12 @@ interface Schedule {
 interface ExistingBooking {
   id: string;
   scheduleId: string;
-  date: Date;
+  date: string | Date;
 }
 
 interface BookingCount {
   scheduleId: string;
-  date: Date;
+  date: string | Date;
   _count: number;
 }
 
@@ -65,10 +65,9 @@ interface BookingCalendarProps {
 
 export function BookingCalendar({
   schedules,
-  existingBookings,
+  existingBookings: initialExistingBookings,
   bookingCounts,
 }: BookingCalendarProps) {
-  const router = useRouter();
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(
     new Date()
   );
@@ -81,6 +80,7 @@ export function BookingCalendar({
   );
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [existingBookings, setExistingBookings] = useState(initialExistingBookings);
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -118,33 +118,28 @@ export function BookingCalendar({
     setIsLoading(true);
     setError(null);
 
-    try {
-      const response = await fetch("/api/bookings", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          scheduleId: selectedSchedule.id,
-          date: selectedDate.toISOString(),
-          recurring: bookingType === "recurring",
-          weeksAhead: 4,
-        }),
-      });
+    // Simulate booking
+    await new Promise((resolve) => setTimeout(resolve, 500));
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        setError(data.error || "Failed to book class");
-        return;
+    // Add to existing bookings locally
+    setExistingBookings(prev => [
+      ...prev,
+      {
+        id: `demo-${Date.now()}`,
+        scheduleId: selectedSchedule.id,
+        date: selectedDate.toISOString().split("T")[0],
       }
+    ]);
 
-      setIsBooking(false);
-      setSelectedSchedule(null);
-      router.refresh();
-    } catch {
-      setError("Something went wrong. Please try again.");
-    } finally {
-      setIsLoading(false);
-    }
+    toast.success(
+      bookingType === "recurring"
+        ? "Demo: Booked for 4 weeks"
+        : "Demo: Class booked successfully"
+    );
+
+    setIsBooking(false);
+    setSelectedSchedule(null);
+    setIsLoading(false);
   }
 
   return (

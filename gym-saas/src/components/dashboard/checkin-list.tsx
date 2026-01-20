@@ -1,15 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { toast } from "sonner";
 
 interface Booking {
   id: string;
   checkedIn: boolean;
-  checkedInAt: Date | null;
-  user: {
+  checkedInAt?: Date | null;
+  user?: {
     id: string;
     name: string;
     email: string;
@@ -20,28 +20,18 @@ interface CheckInListProps {
   bookings: Booking[];
 }
 
-export function CheckInList({ bookings }: CheckInListProps) {
-  const router = useRouter();
-  const [loadingId, setLoadingId] = useState<string | null>(null);
+export function CheckInList({ bookings: initialBookings }: CheckInListProps) {
+  const [bookings, setBookings] = useState(initialBookings);
 
-  async function handleCheckIn(bookingId: string) {
-    setLoadingId(bookingId);
-
-    try {
-      const response = await fetch(`/api/bookings/${bookingId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "checkin" }),
-      });
-
-      if (response.ok) {
-        router.refresh();
-      }
-    } catch (error) {
-      console.error("Failed to check in:", error);
-    } finally {
-      setLoadingId(null);
-    }
+  function handleCheckIn(bookingId: string) {
+    setBookings(prev =>
+      prev.map(b =>
+        b.id === bookingId
+          ? { ...b, checkedIn: true, checkedInAt: new Date() }
+          : b
+      )
+    );
+    toast.success("Member checked in successfully");
   }
 
   if (bookings.length === 0) {
@@ -62,9 +52,9 @@ export function CheckInList({ bookings }: CheckInListProps) {
           }`}
         >
           <div>
-            <div className="font-medium">{booking.user.name}</div>
+            <div className="font-medium">{booking.user?.name || "Unknown"}</div>
             <div className="text-sm text-muted-foreground">
-              {booking.user.email}
+              {booking.user?.email || ""}
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -83,9 +73,8 @@ export function CheckInList({ bookings }: CheckInListProps) {
               <Button
                 size="sm"
                 onClick={() => handleCheckIn(booking.id)}
-                disabled={loadingId === booking.id}
               >
-                {loadingId === booking.id ? "..." : "Check In"}
+                Check In
               </Button>
             )}
           </div>

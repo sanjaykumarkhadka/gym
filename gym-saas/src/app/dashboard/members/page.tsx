@@ -1,5 +1,6 @@
-import { requireAssistant } from "@/lib/auth-utils";
-import { getTenantMembers } from "@/lib/tenant";
+"use client";
+
+import { demoMembers } from "@/lib/mock-data";
 import {
   Card,
   CardContent,
@@ -17,9 +18,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-export default async function MembersPage() {
-  const user = await requireAssistant();
-  const members = await getTenantMembers(user.tenantId);
+export default function MembersPage() {
+  const members = demoMembers;
 
   const memberCount = members.filter((m) => m.role === "MEMBER").length;
   const activeSubscriptions = members.filter(
@@ -74,56 +74,50 @@ export default async function MembersPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {members.length === 0 ? (
-            <p className="text-center py-8 text-muted-foreground">
-              No members yet. Share your invite link to get started.
-            </p>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Role</TableHead>
-                  <TableHead>Subscription</TableHead>
-                  <TableHead>Joined</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {members.map((member) => (
-                  <TableRow key={member.id}>
-                    <TableCell className="font-medium">{member.name}</TableCell>
-                    <TableCell>{member.email}</TableCell>
-                    <TableCell>
-                      <Badge
-                        variant={
-                          member.role === "OWNER"
-                            ? "default"
-                            : member.role === "ASSISTANT"
-                              ? "secondary"
-                              : "outline"
-                        }
-                      >
-                        {member.role}
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Name</TableHead>
+                <TableHead>Email</TableHead>
+                <TableHead>Role</TableHead>
+                <TableHead>Subscription</TableHead>
+                <TableHead>Joined</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {members.map((member) => (
+                <TableRow key={member.id}>
+                  <TableCell className="font-medium">{member.name}</TableCell>
+                  <TableCell>{member.email}</TableCell>
+                  <TableCell>
+                    <Badge
+                      variant={
+                        member.role === "OWNER"
+                          ? "default"
+                          : member.role === "ASSISTANT"
+                            ? "secondary"
+                            : "outline"
+                      }
+                    >
+                      {member.role}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    {member.subscriptions.length > 0 ? (
+                      <Badge variant="default" className="bg-green-600">
+                        {member.subscriptions[0].plan.name}
                       </Badge>
-                    </TableCell>
-                    <TableCell>
-                      {member.subscriptions.length > 0 ? (
-                        <Badge variant="default" className="bg-green-600">
-                          {member.subscriptions[0].plan.name}
-                        </Badge>
-                      ) : (
-                        <span className="text-muted-foreground">None</span>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {new Date(member.createdAt).toLocaleDateString()}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
+                    ) : (
+                      <span className="text-muted-foreground">None</span>
+                    )}
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {new Date(member.createdAt).toLocaleDateString()}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         </CardContent>
       </Card>
     </div>

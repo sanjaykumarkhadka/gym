@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, Suspense } from "react";
-import { signIn } from "next-auth/react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useDemoAuth } from "@/lib/demo-auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,68 +15,93 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 
-function LoginForm() {
+export default function LoginPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
-  const [error, setError] = useState<string | null>(null);
+  const { login } = useDemoAuth();
   const [isLoading, setIsLoading] = useState(false);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setIsLoading(true);
-    setError(null);
 
-    const formData = new FormData(e.currentTarget);
-    const email = formData.get("email") as string;
-    const password = formData.get("password") as string;
+    // Simulate login delay
+    await new Promise((resolve) => setTimeout(resolve, 500));
 
-    try {
-      const result = await signIn("credentials", {
-        email,
-        password,
-        redirect: false,
-      });
-
-      if (result?.error) {
-        setError("Invalid email or password");
-      } else {
-        router.push(callbackUrl);
-        router.refresh();
-      }
-    } catch {
-      setError("Something went wrong. Please try again.");
-    } finally {
-      setIsLoading(false);
-    }
+    login("OWNER");
+    router.push("/dashboard/admin");
   }
+
+  const handleQuickLogin = (role: "OWNER" | "ASSISTANT" | "MEMBER") => {
+    login(role);
+    if (role === "OWNER") {
+      router.push("/dashboard/admin");
+    } else if (role === "ASSISTANT") {
+      router.push("/dashboard/assistant");
+    } else {
+      router.push("/dashboard/member");
+    }
+  };
 
   return (
     <Card>
       <CardHeader className="space-y-1">
-        <CardTitle className="text-2xl font-bold text-center">
-          Welcome back
-        </CardTitle>
+        <div className="flex items-center justify-center gap-2 mb-2">
+          <CardTitle className="text-2xl font-bold text-center">
+            Welcome back
+          </CardTitle>
+          <Badge variant="outline">Demo</Badge>
+        </div>
         <CardDescription className="text-center">
-          Sign in to your account to continue
+          This is a demo - click any button below to explore
         </CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="space-y-4">
+        <div className="grid gap-2">
+          <p className="text-sm font-medium text-center mb-2">Quick Login As:</p>
+          <Button
+            onClick={() => handleQuickLogin("OWNER")}
+            className="w-full"
+          >
+            Login as Gym Owner
+          </Button>
+          <Button
+            onClick={() => handleQuickLogin("ASSISTANT")}
+            variant="outline"
+            className="w-full"
+          >
+            Login as Staff Assistant
+          </Button>
+          <Button
+            onClick={() => handleQuickLogin("MEMBER")}
+            variant="outline"
+            className="w-full"
+          >
+            Login as Member
+          </Button>
+        </div>
+
+        <div className="relative">
+          <div className="absolute inset-0 flex items-center">
+            <span className="w-full border-t" />
+          </div>
+          <div className="relative flex justify-center text-xs uppercase">
+            <span className="bg-background px-2 text-muted-foreground">
+              Or use form
+            </span>
+          </div>
+        </div>
+
         <form onSubmit={handleSubmit} className="space-y-4">
-          {error && (
-            <div className="p-3 text-sm text-red-500 bg-red-50 rounded-md">
-              {error}
-            </div>
-          )}
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
             <Input
               id="email"
               name="email"
               type="email"
-              placeholder="name@example.com"
-              required
+              placeholder="demo@gymsaas.com"
+              defaultValue="demo@gymsaas.com"
               disabled={isLoading}
             />
           </div>
@@ -86,7 +111,7 @@ function LoginForm() {
               id="password"
               name="password"
               type="password"
-              required
+              defaultValue="demo123"
               disabled={isLoading}
             />
           </div>
@@ -104,13 +129,5 @@ function LoginForm() {
         </div>
       </CardFooter>
     </Card>
-  );
-}
-
-export default function LoginPage() {
-  return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <LoginForm />
-    </Suspense>
   );
 }

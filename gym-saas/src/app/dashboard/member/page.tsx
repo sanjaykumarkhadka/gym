@@ -1,6 +1,6 @@
-import { auth } from "@/auth";
-import { redirect } from "next/navigation";
-import { getUserBookings } from "@/lib/booking";
+"use client";
+
+import { demoUpcomingBookings, demoPastBookings } from "@/lib/mock-data";
 import {
   Card,
   CardContent,
@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { BookingActions } from "@/components/dashboard/booking-actions";
+import Link from "next/link";
 
 const DAYS = [
   "Sunday",
@@ -21,15 +22,9 @@ const DAYS = [
   "Saturday",
 ];
 
-export default async function MemberDashboardPage() {
-  const session = await auth();
-
-  if (!session?.user) {
-    redirect("/login");
-  }
-
-  const upcomingBookings = await getUserBookings(session.user.id, true);
-  const pastBookings = await getUserBookings(session.user.id, false);
+export default function MemberDashboardPage() {
+  const upcomingBookings = demoUpcomingBookings;
+  const pastBookings = demoPastBookings;
 
   return (
     <div className="space-y-6">
@@ -56,12 +51,12 @@ export default async function MemberDashboardPage() {
                 <p className="text-sm text-muted-foreground mb-4">
                   You don&apos;t have any upcoming bookings
                 </p>
-                <a
+                <Link
                   href="/dashboard/book"
                   className="text-primary hover:underline text-sm"
                 >
                   Book a class
-                </a>
+                </Link>
               </div>
             ) : (
               <div className="space-y-3">

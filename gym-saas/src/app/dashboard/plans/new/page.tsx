@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import {
   Card,
   CardContent,
@@ -30,34 +31,12 @@ export default function NewPlanPage() {
     setIsLoading(true);
     setError(null);
 
-    const formData = new FormData(e.currentTarget);
+    // Simulate creating plan
+    await new Promise((resolve) => setTimeout(resolve, 500));
 
-    try {
-      const response = await fetch("/api/plans", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: formData.get("name"),
-          description: formData.get("description") || null,
-          price: parseFloat(formData.get("price") as string),
-          interval: formData.get("interval"),
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        setError(data.error || "Failed to create plan");
-        return;
-      }
-
-      router.push("/dashboard/plans");
-      router.refresh();
-    } catch {
-      setError("Something went wrong. Please try again.");
-    } finally {
-      setIsLoading(false);
-    }
+    toast.success("Demo: Membership plan would be created");
+    router.push("/dashboard/plans");
+    setIsLoading(false);
   }
 
   return (

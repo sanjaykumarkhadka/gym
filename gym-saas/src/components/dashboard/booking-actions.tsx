@@ -1,7 +1,5 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -9,39 +7,21 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { toast } from "sonner";
 
 interface BookingActionsProps {
   bookingId: string;
 }
 
 export function BookingActions({ bookingId }: BookingActionsProps) {
-  const router = useRouter();
-  const [isLoading, setIsLoading] = useState(false);
-
-  async function handleCancel() {
-    if (!confirm("Are you sure you want to cancel this booking?")) return;
-
-    setIsLoading(true);
-
-    try {
-      const response = await fetch(`/api/bookings/${bookingId}`, {
-        method: "DELETE",
-      });
-
-      if (response.ok) {
-        router.refresh();
-      }
-    } catch (error) {
-      console.error("Failed to cancel booking:", error);
-    } finally {
-      setIsLoading(false);
-    }
+  function handleCancel() {
+    toast.success("Demo: Booking would be cancelled");
   }
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="sm" disabled={isLoading}>
+        <Button variant="ghost" size="sm">
           ...
         </Button>
       </DropdownMenuTrigger>
